@@ -10,7 +10,7 @@ import { authenticate } from '../middleware/auth';
 import {
   validateAddToCart,
   validateUpdateCartItem,
-  validateCartItemId,
+  validateCartProductId,
 } from '../validator/validation';
 
 const router = Router();
@@ -19,7 +19,7 @@ router.use(authenticate); // All cart routes require authentication
 
 router.get('/', getCart);
 router.post('/', validateAddToCart, addToCart);
-router.put('/:id', validateCartItemId, validateUpdateCartItem, updateCartItem);
-router.delete('/:id', validateCartItemId, removeFromCart);
+router.put('/:productId', validateCartProductId, validateUpdateCartItem, updateCartItem);
+router.delete('/:productId', validateCartProductId, removeFromCart);
 
 export default router;

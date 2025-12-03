@@ -14,6 +14,7 @@ import {
 import {
   validateAdminProduct,
   validateAdminUser,
+  validateProductId,
 } from '../validator/validation';
 
 const router = Router();
@@ -31,6 +32,6 @@ router.use(authenticate);
 // Product management routes
 router.post('/products', validateAdminProduct, createProduct);
 router.put('/products/:id', validateAdminProduct, updateProduct);
-router.delete('/products/:id', deleteProduct);
+router.delete('/products/:id', validateProductId, deleteProduct);
 
 export default router;

@@ -6,6 +6,7 @@ import Product from '../models/Product';
 import Order from '../models/Order';
 import User from '../models/User';
 import { sequelize } from '../config/database';
+import { ValidationService } from '../validator/validation';
 import {
   createTransaction,
   createTransactionWithRetry,
@@ -209,12 +210,13 @@ export const getOrderStatus = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { orderId } = req.params;
     const userId = req.user!.id;
+    const validated = ValidationService.validateOrderId(req.params);
+    const { orderId } = validated;
 
     const order = await Order.findOne({
       where: {
-        id: orderId,
+        midtransPaymentId: orderId, // Orders are identified by midtransPaymentId
         userId, // Ensure user can only check their own orders
       },
     });
@@ -288,8 +290,10 @@ export const handlePaymentNotification = async (
   res: Response
 ): Promise<void> => {
   try {
+    const validated = ValidationService.validateOrderStatus(req.body);
+    const { orderId } = validated;
+
     const {
-      order_id,
       transaction_status,
       fraud_status,
       payment_type,
@@ -298,7 +302,7 @@ export const handlePaymentNotification = async (
     } = req.body;
 
     const order = await Order.findOne({
-      where: { midtransPaymentId: order_id },
+      where: { midtransPaymentId: orderId },
     });
 
     if (!order) {
@@ -347,7 +351,7 @@ export const handlePaymentNotification = async (
     await order.save();
 
     console.log(
-      `Payment notification processed: Order ${order_id} status updated to ${orderStatus}`
+      `Payment notification processed: Order ${orderId} status updated to ${orderStatus}`
     );
 
     res.json({ message: 'Notification processed successfully' });

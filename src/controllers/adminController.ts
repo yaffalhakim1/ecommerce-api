@@ -1,17 +1,14 @@
 import { Request, Response } from 'express';
 import Product from '../models/Product';
+import { ValidationService } from '../validator/validation';
 
 export const createProduct = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { name, description, price, stock, category, imageUrl } = req.body;
-
-    if (!name || !description || !price || !stock || !category) {
-      res.status(400).json({ message: 'Missing required fields' });
-      return;
-    }
+    const validated = ValidationService.validateAdminProduct(req.body);
+    const { name, description, price, stock, category, imageUrl } = validated;
 
     const product = await Product.create({
       name,
@@ -37,8 +34,9 @@ export const updateProduct = async (
   res: Response
 ): Promise<void> => {
   try {
+    const validated = ValidationService.validateAdminProduct(req.body);
+    const { name, description, price, stock, category, imageUrl } = validated;
     const { id } = req.params;
-    const { name, description, price, stock, category, imageUrl } = req.body;
 
     const product = await Product.findByPk(id);
 
@@ -48,11 +46,11 @@ export const updateProduct = async (
     }
 
     await product.update({
-      name: name || product.name,
-      description: description || product.description,
+      name: name !== undefined ? name : product.name,
+      description: description !== undefined ? description : product.description,
       price: price !== undefined ? price : product.price,
       stock: stock !== undefined ? stock : product.stock,
-      category: category || product.category,
+      category: category !== undefined ? category : product.category,
       imageUrl: imageUrl !== undefined ? imageUrl : product.imageUrl,
     });
 
@@ -71,7 +69,8 @@ export const deleteProduct = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const validated = ValidationService.validateProductId(req.params);
+    const { id } = validated;
 
     const product = await Product.findByPk(id);
 

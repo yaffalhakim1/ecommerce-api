@@ -98,8 +98,16 @@ export const cartItemIdSchema = z.object({
   id: z.string().regex(/^\d+$/, 'Invalid cart item ID format'),
 });
 
+export const cartProductIdSchema = z.object({
+  productId: z.string().regex(/^\d+$/, 'Invalid product ID format'),
+});
+
 // Order validation schemas
 export const orderStatusSchema = z.object({
+  orderId: z.string().min(1, 'Order ID is required'),
+});
+
+export const orderIdSchema = z.object({
   orderId: z.string().min(1, 'Order ID is required'),
 });
 
@@ -256,8 +264,30 @@ export class ValidationService {
     return result.data;
   }
 
+  static validateCartProductId(params: unknown) {
+    const result = cartProductIdSchema.safeParse(params);
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((issue) => issue.message);
+      throw new Error(
+        errorMessages.length === 1 ? errorMessages[0] : 'Validation failed'
+      );
+    }
+    return result.data;
+  }
+
   static validateOrderStatus(body: unknown) {
     const result = orderStatusSchema.safeParse(body);
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((issue) => issue.message);
+      throw new Error(
+        errorMessages.length === 1 ? errorMessages[0] : 'Validation failed'
+      );
+    }
+    return result.data;
+  }
+
+  static validateOrderId(params: unknown) {
+    const result = orderIdSchema.safeParse(params);
     if (!result.success) {
       const errorMessages = result.error.issues.map((issue) => issue.message);
       throw new Error(
@@ -463,6 +493,32 @@ export const validateAdminUser = async (
 ): Promise<void> => {
   try {
     ValidationService.validateAdminUser(req.body);
+    next();
+  } catch (err) {
+    res.status(400).json({ message: (err as Error).message });
+  }
+};
+
+export const validateCartProductId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    ValidationService.validateCartProductId(req.params);
+    next();
+  } catch (err) {
+    res.status(400).json({ message: (err as Error).message });
+  }
+};
+
+export const validateOrderId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    ValidationService.validateOrderId(req.params);
     next();
   } catch (err) {
     res.status(400).json({ message: (err as Error).message });

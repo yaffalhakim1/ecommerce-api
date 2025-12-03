@@ -8,15 +8,16 @@ import {
 } from '../controllers/orderController';
 import { authenticate } from '../middleware/auth';
 import { authenticateWebhook } from '../middleware/webhookAuth';
+import { validateOrderId, validateOrderStatus } from '../validator/validation';
 
 const router = Router();
 
 // Customer routes (require authentication)
 router.post('/checkout', authenticate, checkout);
 router.get('/', authenticate, getOrders);
-router.get('/:orderId', authenticate, getOrderStatus);
+router.get('/:orderId', authenticate, validateOrderId, getOrderStatus);
 
 // Webhook route (no auth required, but signature verification required)
-router.post('/webhook', authenticateWebhook, handlePaymentNotification);
+router.post('/webhook', authenticateWebhook, validateOrderStatus, handlePaymentNotification);
 
 export default router;
